@@ -1,33 +1,47 @@
 import {
+  calcPercentage,
   estimateDays,
   getcurrentlyInfected,
-  getInfectionsByDay
+  getInfectionsByDay,
+  getAvailableBeds
 } from './helpers';
 
 const covid19ImpactEstimator = (data) => {
   const {
     reportedCases,
     periodType,
-    timeToElapse
+    timeToElapse,
+    totalHospitalBeds
   } = data;
 
   const days = estimateDays(periodType, timeToElapse);
 
-  const currentlyInfected = getcurrentlyInfected(reportedCases);
-  const severelyInfected = getcurrentlyInfected(reportedCases, true);
+  const currentlyInfected = Math.trunc(getcurrentlyInfected(reportedCases));
+  const severelyInfected = Math.trunc(getcurrentlyInfected(reportedCases, true));
 
-  const infectionsByRequestedTime = getInfectionsByDay(currentlyInfected, days);
-  const severeInfectionsByTime = getInfectionsByDay(severelyInfected, days);
+  const infectionsByRequestedTime = Math.trunc(getInfectionsByDay(currentlyInfected, days));
+  const severeInfectionsByTime = Math.trunc(getInfectionsByDay(severelyInfected, days));
+
+  const severeCasesByRequestedTime = Math.trunc(calcPercentage(infectionsByRequestedTime, 15));
+  const severeImpactedByRequestedTime = Math.trunc(calcPercentage(severeInfectionsByTime, 15));
+  const hospitalBedsByRequestedTime = Math.trunc(getAvailableBeds(totalHospitalBeds, 35)
+    - severeCasesByRequestedTime);
+  const severeBedsByRequestedTime = Math.trunc(getAvailableBeds(totalHospitalBeds, 35)
+    - severeImpactedByRequestedTime);
 
   return {
     data,
     impact: {
       currentlyInfected,
-      infectionsByRequestedTime
+      infectionsByRequestedTime,
+      severeCasesByRequestedTime,
+      hospitalBedsByRequestedTime
     },
     severeImpact: {
       currentlyInfected: severelyInfected,
-      infectionsByRequestedTime: severeInfectionsByTime
+      infectionsByRequestedTime: severeInfectionsByTime,
+      severeCasesByRequestedTime: severeImpactedByRequestedTime,
+      hospitalBedsByRequestedTime: severeBedsByRequestedTime
     }
   };
 };
