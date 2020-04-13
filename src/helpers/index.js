@@ -20,3 +20,12 @@ export const getAvailableBeds = (totalBeds, availability) => {
   const beds = calcPercentage(totalBeds, availability);
   return beds;
 };
+
+export const getDollarsInFlight = (infectionsByRequested, days, region) => {
+  const result = (
+    infectionsByRequested
+    * region.avgDailyIncomePopulation
+    * region.avgDailyInUSD
+  ) / days;
+  return result;
+};
